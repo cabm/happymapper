@@ -86,13 +86,13 @@ module HappyMapper
         obj = new
         
         attributes.each do |attr| 
-          obj.send("#{attr.method_name}=", 
-                    attr.from_xml_node(n, namespace))
+          value = attr.options.has_key?(:nested_in_self) ? attr.type.parse(xml) : attr.from_xml_node(n, namespace)
+          obj.send("#{attr.method_name}=", value)
         end
-        
-        elements.each do |elem|
-          obj.send("#{elem.method_name}=", 
-                    elem.from_xml_node(n, namespace))
+         
+        elements.each do |elem| 
+          value = elem.options.has_key?(:nested_in_self) ?  elem.type.parse(xml) : elem.from_xml_node(n, namespace)
+          obj.send("#{elem.method_name}=", value)
         end
         
         obj

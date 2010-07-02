@@ -268,7 +268,8 @@ module GitHub
     element :id, String
     element :'committed-date', Date
   end
-end
+end 
+
 
 describe HappyMapper do
   
@@ -497,8 +498,8 @@ describe HappyMapper do
     product.feature_bullets.features.size.should == 2
     product.feature_bullets.features[0].name.should == 'This is feature text 1'
     product.feature_bullets.features[1].name.should == 'This is feature text 2'
-  end
-  
+  end  
+ 
   it "should parse xml with multiple namespaces" do
     track = FedEx::TrackReply.parse(fixture_file('multiple_namespaces.xml'))
     track.highest_severity.should == 'SUCCESS'
@@ -577,7 +578,9 @@ describe HappyMapper do
     # tree.people.first.version.should == '1199378491000'
     # tree.people.first.modified.should == Time.utc(2008, 1, 3, 16, 41, 31) # 2008-01-03T09:41:31-07:00
     # tree.people.first.id.should == 'KWQS-BBQ'
-  end
+  end 
+  
+
   
   describe 'nested elements with namespaces' do
     module Namespaces
@@ -622,6 +625,44 @@ describe HappyMapper do
     it "should map elements without a namespace" do
       mapping.alert.severity.should == 'Severe'
     end
-  end
+  end    
   
-end
+  describe 'nested element in self' do
+      module ScrewyXml
+        class Address
+          include HappyMapper
+          tag 'PERSON'
+          element :street_1, String, :tag => 'STREET-1'
+          element :street_2, String, :tag => 'STREET-2'
+          element :city, String, :tag => 'CITY'
+          element :state, String, :tag => 'STATE'  
+          element :zip_code, String, :tag => 'ZIP-CODE'
+        end
+        
+        class Person
+          include HappyMapper
+          tag 'PERSON'
+          element :first_name, String, :tag => 'FIRST-NAME'
+          element :last_name, String, :tag => 'LAST-NAME' 
+          has_one :address, ScrewyXml::Address, :nested_in_self => true
+        end 
+      end
+   
+      it "should parse xml with object nested in self" do  
+        person = ScrewyXml::Person.parse(fixture_file('person_address_nested_in_self.xml'))
+        person.address.street_1.should == "123 Madison"
+        person.address.street_2.should == ""
+        person.address.city.should == "Chicago"
+        person.address.state.should == "Il"
+        person.first_name.should == "Cab"
+        person.last_name.should == "M"
+      end
+    end            
+  
+
+  
+  
+  
+end  
+
+
